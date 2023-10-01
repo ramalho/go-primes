@@ -136,9 +136,9 @@ func TestPreviousPrime(t *testing.T) {
 	}
 }
 
-var twoFactorComposites = []struct {
-	n         uint64
-	composite uint64
+var semiprimesNear = []struct {
+	target    uint64
+	semiprime uint64
 	err       error
 }{
 	{1, 4, nil},
@@ -152,7 +152,7 @@ var twoFactorComposites = []struct {
 	{12, 9, nil},
 	{13, 15, nil},
 	{14, 15, nil},
-	{14, 15, nil},
+	{15, 15, nil},
 	{16, 15, nil},
 	{17, 15, nil},
 	{18, 21, nil},
@@ -175,24 +175,20 @@ var twoFactorComposites = []struct {
 	{MaxUint64, 18446744030759878681, nil},
 }
 
-func TestTwoFactorComposites(t *testing.T) {
+func TestSemiprimeNear(t *testing.T) {
 	t.Parallel()
-	// if *slow {
-	// 	var slowCase = prevPrime{MaxUint64, MaxUint64Prime, nil}
-	// 	prevPrimes = append(prevPrimes, slowCase)
-	// }
-	for _, testCase := range twoFactorComposites {
+	for _, testCase := range semiprimesNear {
 		tc := testCase
 		t.Run(fmt.Sprintf("%v", tc), func(t *testing.T) {
 			t.Parallel()
-			got, err := TwoFactorComposite(tc.n)
-			if got != tc.composite {
+			got, err := SemiprimeNear(tc.target)
+			if got != tc.semiprime {
 				t.Errorf("near %v expected: %v, got: %v",
-					tc.n, tc.composite, got)
+					tc.target, tc.semiprime, got)
 			}
 			if got == 0 && tc.err.Error() != err.Error() {
 				t.Errorf("%v expected error %q, got: %q",
-					tc.n, tc.err, err)
+					tc.target, tc.err, err)
 			}
 		})
 	}

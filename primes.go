@@ -62,7 +62,7 @@ func PreviousPrime(n uint64) (uint64, error) {
 	return 0, errors.New("no primes < 2")
 }
 
-func TwoFactorComposite(target uint64) (uint64, error) {
+func SemiprimeNear(target uint64) (uint64, error) {
 	root := uint64(math.Round(math.Sqrt(float64(target))))
 	root = max(root, 2) // 2 is the smallest prime
 	if IsPrime(root) {
