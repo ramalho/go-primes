@@ -156,13 +156,12 @@ func demo() {
 var interestingIntegers = []uint64{
 	2,
 	3,
-	17592186044416,       // 2 ** 44
-	281474976710656,      // 2 ** 48
-	4503599627370496,     // 2 ** 52
+	18014398509481984,    // 2 ** 54
 	72057594037927936,    // 2 ** 56
+	288230376151711744,   // 2 ** 58
 	1152921504606846976,  // 2 ** 60
+	4611686018427387904,  // 2 ** 62
 	18446744073709551615, // 2 ** 64 - 1
-
 }
 
 func interestingReport() {
@@ -182,14 +181,16 @@ func interestingReport() {
 }
 
 func reportLine(i int, n uint64) {
-	start := time.Now()
+	// format line to use as fixture for primes.py in python-eng repo
 	lpf := LPF(n)
-	var label string
-	if n == lpf {
-		label = "P"
+	var comment string
+
+	// Experiment(17592186044416, 2),  # 2 ** 44
+
+	if n%2 == 0 {
+		comment = fmt.Sprintf("  # 2 ** %v", math.Log2(float64(n)))
 	}
-	elapsed := time.Since(start).Seconds()
-	fmt.Printf("%2d  %20d  %1s %20d  // %0.6fs\n", i, n, label, lpf, elapsed)
+	fmt.Printf("Experiment(%20d, %20d),%v\n", n, lpf, comment)
 
 }
 
