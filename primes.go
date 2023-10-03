@@ -107,7 +107,7 @@ func SemiprimeNear(target uint64) (uint64, error) {
 
 const shortTime = 0.0001
 
-func main() {
+func demo() {
 	if len(os.Args) != 2 {
 		fmt.Printf("Usage:\t%v n\n", os.Args[0])
 		fmt.Println("\tfind primes closest to n")
@@ -151,4 +151,48 @@ func main() {
 		msg = fmt.Sprintf("%0.3fs", elapsed)
 	}
 	fmt.Printf("%20d  # next prime (%v)\n", next, msg)
+}
+
+var interestingIntegers = []uint64{
+	2,
+	3,
+	17592186044416,       // 2 ** 44
+	281474976710656,      // 2 ** 48
+	4503599627370496,     // 2 ** 52
+	72057594037927936,    // 2 ** 56
+	1152921504606846976,  // 2 ** 60
+	18446744073709551615, // 2 ** 64 - 1
+
+}
+
+func interestingReport() {
+	lineNum := 1
+	for _, n := range interestingIntegers {
+		pp, _ := PreviousPrime(n)
+		if pp != n {
+			reportLine(lineNum, pp)
+			lineNum++
+		}
+		reportLine(lineNum, n)
+		lineNum++
+		sp, _ := SemiprimeNear(n)
+		reportLine(lineNum, sp)
+		lineNum++
+	}
+}
+
+func reportLine(i int, n uint64) {
+	start := time.Now()
+	lpf := LPF(n)
+	var label string
+	if n == lpf {
+		label = "P"
+	}
+	elapsed := time.Since(start).Seconds()
+	fmt.Printf("%2d  %20d  %1s %20d  // %0.6fs\n", i, n, label, lpf, elapsed)
+
+}
+
+func main() {
+	interestingReport()
 }
