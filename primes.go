@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"golang.org/x/exp/constraints"
 )
 
 const MaxUint64 = ^uint64(0) // using two's complement
@@ -155,12 +154,12 @@ func demo() {
 }
 
 
-func UintPow[T constraints.Unsigned](n, m T) T {
+func UintPow(n, m uint64) uint64 {
     if m == 0 {
         return 1
     }
     result := n
-    for i := T(2); i <= m; i++ {
+    for i := uint64(2); i <= m; i++ {
         result *= n
     }
     return result
