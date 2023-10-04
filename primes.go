@@ -36,7 +36,7 @@ func LPF(n uint64) uint64 {
 	return n
 }
 
-// IsPrime returns true if n is prime, false otherwise.
+// IsPrime returns true if `n“ is prime, false otherwise.
 func IsPrime(n uint64) bool {
 	if n <= 1 {
 		return false
@@ -44,8 +44,8 @@ func IsPrime(n uint64) bool {
 	return LPF(n) == n
 }
 
-// NextPrime finds the next prime number starting at n.
-// If n is prime, it returns n.
+// NextPrime finds the next prime number starting at `n`.
+// If `n` is prime, it returns `n“.
 func NextPrime(n uint64) (uint64, error) {
 	if n < 2 {
 		return 2, nil
@@ -62,12 +62,11 @@ func NextPrime(n uint64) (uint64, error) {
 			return i, nil
 		}
 	}
-	return 0, errors.New(
-		fmt.Sprintf("no primes >= %v in uint64 range", n))
+	return 0, fmt.Errorf("no primes >= %v in uint64 range", n)
 }
 
-// PreviousPrime finds the previous prime number starting at n.
-// If n is prime, it returns n.
+// PreviousPrime finds the previous prime number starting at `n“.
+// If `n“ is prime, it returns `n“.
 func PreviousPrime(n uint64) (uint64, error) {
 	if IsPrime(n) {
 		return n, nil
@@ -153,22 +152,21 @@ func demo() {
 	fmt.Printf("%20d  # next prime (%v)\n", next, msg)
 }
 
-
 func UintPow(n, m uint64) uint64 {
-    if m == 0 {
-        return 1
-    }
-    result := n
-    for i := uint64(2); i <= m; i++ {
-        result *= n
-    }
-    return result
+	if m == 0 {
+		return 1
+	}
+	result := n
+	for i := uint64(2); i <= m; i++ {
+		result *= n
+	}
+	return result
 }
 
 func targets(queue chan<- uint64) {
 	queue <- 64
-	for i := uint64(27); i < 64; i += 6 {
-		queue <- UintPow(2,  i)
+	for i := uint64(32); i < 64; i += 2 {
+		queue <- UintPow(2, i)
 	}
 	queue <- MaxUint64
 	close(queue)
