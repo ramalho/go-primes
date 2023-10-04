@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"golang.org/x/exp/constraints"
 )
 
 const MaxUint64 = ^uint64(0) // using two's complement
@@ -153,47 +154,72 @@ func demo() {
 	fmt.Printf("%20d  # next prime (%v)\n", next, msg)
 }
 
-var interestingIntegers = []uint64{
-	2,
-	3,
-	18014398509481984,    // 2 ** 54
-	72057594037927936,    // 2 ** 56
-	288230376151711744,   // 2 ** 58
-	1152921504606846976,  // 2 ** 60
-	4611686018427387904,  // 2 ** 62
-	18446744073709551615, // 2 ** 64 - 1
+
+func UintPow[T constraints.Unsigned](n, m T) T {
+    if m == 0 {
+        return 1
+    }
+    result := n
+    for i := T(2); i <= m; i++ {
+        result *= n
+    }
+    return result
 }
 
-func interestingReport() {
+func targets(queue chan<- uint64) {
+	queue <- 64
+	for i := uint64(27); i < 64; i += 6 {
+		queue <- UintPow(2,  i)
+	}
+	queue <- MaxUint64
+	close(queue)
+}
+
+func isPowerOf2(n uint64) (bool, uint64) {
+	for i := uint64(2); i < 64; i++ {
+		if n == UintPow(2, i) {
+			return true, i
+		}
+	}
+	return false, 0
+}
+
+func report() {
+	queue := make(chan uint64)
+	go targets(queue)
 	lineNum := 1
-	for _, n := range interestingIntegers {
+	for n := range queue {
 		pp, _ := PreviousPrime(n)
 		if pp != n {
-			reportLine(lineNum, pp)
+			reportLine(lineNum, pp, "  # prime")
 			lineNum++
 		}
-		reportLine(lineNum, n)
+		var comment string
+
+		if isP2, p2 := isPowerOf2(n); isP2 {
+			comment = fmt.Sprintf("  # 2 ** %v", p2)
+		}
+
+		reportLine(lineNum, n, comment)
 		lineNum++
 		sp, _ := SemiprimeNear(n)
-		reportLine(lineNum, sp)
-		lineNum++
+		if sp != n {
+			reportLine(lineNum, sp, "  # semiprime")
+			lineNum++
+		}
 	}
 }
 
-func reportLine(i int, n uint64) {
+func reportLine(i int, n uint64, comment string) {
 	// format line to use as fixture for primes.py in python-eng repo
 	lpf := LPF(n)
-	var comment string
 
 	// Experiment(17592186044416, 2),  # 2 ** 44
 
-	if n%2 == 0 {
-		comment = fmt.Sprintf("  # 2 ** %v", math.Log2(float64(n)))
-	}
 	fmt.Printf("Experiment(%20d, %20d),%v\n", n, lpf, comment)
 
 }
 
 func main() {
-	interestingReport()
+	report()
 }
