@@ -105,7 +105,7 @@ func SemiprimeNear(target uint64) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if a*b < a*a { // handle uint64 overflow
+	if (a * b) < (a * a) { // handle uint64 overflow
 		return a * a, nil
 	}
 	return a * b, nil
@@ -113,7 +113,7 @@ func SemiprimeNear(target uint64) (uint64, error) {
 
 const shortTime = 0.0001
 
-func demo() {
+func FindPrimes() {
 	if len(os.Args) != 2 {
 		fmt.Printf("Usage:\t%v n\n", os.Args[0])
 		fmt.Println("\tfind primes closest to n")
@@ -170,11 +170,12 @@ func UintPow(n, m uint64) uint64 {
 	return result
 }
 
-func targets(queue chan<- uint64) {
+func loadTargets(queue chan<- uint64) {
 	queue <- 64
 	for i := uint64(32); i < 64; i += 2 {
 		queue <- UintPow(2, i)
 	}
+	queue <- UintPow(2, 63)
 	queue <- MaxUint64
 	close(queue)
 }
@@ -190,25 +191,27 @@ func isPowerOf2(n uint64) (bool, uint64) {
 
 func report() {
 	queue := make(chan uint64)
-	go targets(queue)
+	go loadTargets(queue)
 	lineNum := 1
 	for n := range queue {
 		pp, _ := PreviousPrime(n)
 		if pp != n {
-			reportLine(lineNum, pp, "  # prime")
+			reportLine(lineNum, pp, "prime")
 			lineNum++
 		}
 		var comment string
 
 		if isP2, p2 := isPowerOf2(n); isP2 {
-			comment = fmt.Sprintf("  # 2 ** %v", p2)
+			comment = fmt.Sprintf("2 ** %v", p2)
+		} else if n == MaxUint64 {
+			comment = "2 ** 64 - 1"
 		}
 
 		reportLine(lineNum, n, comment)
 		lineNum++
 		sp, _ := SemiprimeNear(n)
 		if sp != n {
-			reportLine(lineNum, sp, "  # semiprime")
+			reportLine(lineNum, sp, "semiprime")
 			lineNum++
 		}
 	}
@@ -220,10 +223,11 @@ func reportLine(i int, n uint64, comment string) {
 
 	// Experiment(17592186044416, 2),  # 2 ** 44
 
-	fmt.Printf("Experiment(%20d, %20d),%v\n", n, lpf, comment)
+	fmt.Printf("Experiment(%20d, %20d),  # %v\n", n, lpf, comment)
 
 }
 
 func main() {
 	report()
+	// FindPrimes()
 }
