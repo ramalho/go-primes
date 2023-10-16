@@ -1,11 +1,13 @@
 package main
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"math"
 	"math/big"
 	"os"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -90,7 +92,7 @@ func PreviousPrime(n uint64) (uint64, error) {
 	return 0, errors.New("no primes < 2")
 }
 
-// SemiprimeNear finds a semiprime close to the target.
+// SemiprimeNear finds a semiprime close to `target`.
 func SemiprimeNear(target uint64) (uint64, error) {
 	root := uint64(math.Round(math.Sqrt(float64(target))))
 	root = max(root, 2) // 2 is the smallest prime
@@ -170,13 +172,17 @@ func UintPow(n, m uint64) uint64 {
 	return result
 }
 
-func loadTargets(queue chan<- uint64) {
-	queue <- 64
-	for i := uint64(32); i < 64; i += 2 {
-		queue <- UintPow(2, i)
+func genTargets(queue chan<- uint64) {
+	const step = MaxUint64 / 16
+	var previous uint64 = 12
+	queue <- previous
+	for n := step; n <= MaxUint64; n += step {
+		if n < previous {
+			break // handle uint64 overflow
+		}
+		queue <- n
+		previous = n
 	}
-	queue <- UintPow(2, 63)
-	queue <- MaxUint64
 	close(queue)
 }
 
@@ -189,41 +195,56 @@ func isPowerOf2(n uint64) (bool, uint64) {
 	return false, 0
 }
 
+type reportLine = struct {
+	n       uint64
+	comment string
+}
+
 func report() {
 	queue := make(chan uint64)
-	go loadTargets(queue)
-	lineNum := 1
+	go genTargets(queue)
+	var lines []reportLine
 	for n := range queue {
 		pp, _ := PreviousPrime(n)
 		if pp != n {
-			reportLine(lineNum, pp, "prime")
-			lineNum++
+			lines = append(lines, reportLine{pp, "prime"})
 		}
 		var comment string
 
 		if isP2, p2 := isPowerOf2(n); isP2 {
 			comment = fmt.Sprintf("2 ** %v", p2)
-		} else if n == MaxUint64 {
-			comment = "2 ** 64 - 1"
 		}
 
-		reportLine(lineNum, n, comment)
-		lineNum++
+		lines = append(lines, reportLine{n, comment})
 		sp, _ := SemiprimeNear(n)
 		if sp != n {
-			reportLine(lineNum, sp, "semiprime")
-			lineNum++
+			lines = append(lines, reportLine{sp, "semiprime"})
 		}
+		slices.SortFunc(lines, func(a, b reportLine) int {
+			return cmp.Compare(a.n, b.n)
+		})
+		for _, line := range lines {
+			displayLine(line)
+		}
+		lines = nil
 	}
+	displayLine(reportLine{MaxUint64, "2 ** 64 - 1"})
 }
 
-func reportLine(i int, n uint64, comment string) {
+func displayLine(l reportLine) {
 	// format line to use as fixture for primes.py in python-eng repo
-	lpf := LPF(n)
+	var lpf uint64
+	if l.comment == "prime" {
+		lpf = l.n
+	} else {
+		lpf = LPF(l.n)
+	}
 
 	// Experiment(17592186044416, 2),  # 2 ** 44
-
-	fmt.Printf("Experiment(%20d, %20d),  # %v\n", n, lpf, comment)
+	if len(l.comment) > 0 {
+		l.comment = "  # " + l.comment
+	}
+	fmt.Printf("Experiment(%20d, %20d),%v\n", l.n, lpf, l.comment)
 
 }
 
