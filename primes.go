@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	"os"
 	"strconv"
 	"time"
@@ -22,6 +23,12 @@ func LPF(n uint64) uint64 {
 		return 2
 	case n%3 == 0:
 		return 3
+	}
+
+	// n.ProbablyPrime(0) uses the Baillie-PSW primality test
+	// https://en.wikipedia.org/wiki/Baillie%E2%80%93PSW_primality_test
+	if n < math.MaxInt64 && big.NewInt(int64(n)).ProbablyPrime(0) {
+		return n
 	}
 	limit := uint64(math.Sqrt(float64(n)))
 	for i := uint64(5); i <= limit; i += 6 {
