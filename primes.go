@@ -102,27 +102,35 @@ func PreviousPrime(n uint64) (uint64, error) {
 	return 0, errors.New("no primes < 2")
 }
 
-// NextSemiprime finds the next semi prime after `n`.
-// If `n` is semi prime, it returns `n`.
-func NextSemiprime(n uint64) PrimeResult {
-	a := LPF(n)
-	b := n / a
-	if b < 2 {
-		b = 2
-	}
-	prod := a * b
-	if prod == n && IsPrime(a) {
-		return PrimeResult{prod, a}
-	}
-	for prod < n {
-		b, err := NextPrime(b + 1)
-		if err != nil {
-			panic(err)
-		}
-		prod = a * b
-	}
-	return PrimeResult{prod, a}
+// SemiprimeNear finds a semiprime close to `target`
+// with a Least Prime Factor close to sqrt(target).
+func SemiprimeNear(target uint64) PrimeResult {
+	a := LPF(target)
 
+	b := target / a
+	if a == b {
+		return PrimeResult{a * a, a}
+	}
+	if IsPrime(b) {
+		return PrimeResult{a * b, a}
+	}
+	root := uint64(math.Round(math.Sqrt(float64(target))))
+	root = max(root, 2) // 2 is the smallest prime
+	if IsPrime(root) {
+		return PrimeResult{root * root, root}
+	}
+	a, err := PreviousPrime(root)
+	if err != nil {
+		a, _ = NextPrime(root)
+	}
+	b, err = NextPrime(target / a)
+	if err != nil {
+		panic(fmt.Sprintf("SemiprimeNear: NextPrime error = %v", err))
+	}
+	if (a * b) < (a * a) { // handle uint64 overflow
+		return PrimeResult{a * a, a}
+	}
+	return PrimeResult{a * b, a}
 }
 
 const shortTime = 0.0001
@@ -237,7 +245,7 @@ func report() {
 		}
 
 		lines = append(lines, reportLine{n, comment})
-		sp := NextSemiprime(n)
+		sp := SemiprimeNear(n)
 		if sp.N != n {
 			lines = append(lines, reportLine{sp.N, "semiprime"})
 		}
