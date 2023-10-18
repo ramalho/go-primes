@@ -7,6 +7,9 @@ import (
 	"testing"
 )
 
+// run `go test -slow` to set this flag to true
+var slow = flag.Bool("slow", false, "perform slow tests")
+
 var sample = []struct {
 	n       uint64
 	isPrime bool
@@ -110,9 +113,6 @@ var prevPrimes = []prevPrime{
 	{1, 0, errors.New("no primes < 2")},
 }
 
-// run `go test -slow` to set this flag to true
-var slow = flag.Bool("slow", false, "perform slow tests")
-
 func TestPreviousPrime(t *testing.T) {
 	t.Parallel()
 	if *slow {
@@ -167,7 +167,7 @@ type semiprimesNearTestCase struct {
 	pr  PrimeResult
 }
 
-var semiprimesNearTestCases = []semiprimesNearTestCase{
+var semiprimeNearTestCases = []semiprimesNearTestCase{
 
 	// squares of primes
 	{4, PrimeResult{4, 2}},
@@ -205,20 +205,17 @@ var semiprimesNearTestCases = []semiprimesNearTestCase{
 	{18000000000000000000, PrimeResult{18000000066870082769, 4242640679}},
 	{18446744000000000000, PrimeResult{18446744065119616769, 4294967279}},
 	{18446744070000000000, PrimeResult{18446744030759878681, 4294967291}},
-	// slow
-	// {MaxUint64Prime, PrimeResult{18446744030759878681, 4294967291}},
-	// {MaxUint64, PrimeResult{18446744030759878681, 4294967291}},
 }
 
 func TestSemiprimeNear(t *testing.T) {
 	t.Parallel()
 	if *slow {
-		semiprimesNearTestCases = append(semiprimesNearTestCases,
+		semiprimeNearTestCases = append(semiprimeNearTestCases,
 			semiprimesNearTestCase{MaxUint64Prime, PrimeResult{18446744030759878681, 4294967291}},
 			semiprimesNearTestCase{MaxUint64, PrimeResult{18446744030759878681, 4294967291}},
 		)
 	}
-	for _, testCase := range semiprimesNearTestCases {
+	for _, testCase := range semiprimeNearTestCases {
 		tc := testCase
 		t.Run(fmt.Sprintf("%v", testCase), func(t *testing.T) {
 			t.Parallel()

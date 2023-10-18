@@ -210,7 +210,7 @@ func genTargetsExp2(queue chan<- uint64) {
 	for e := uint64(30); e < 64; e++ {
 		queue <- UintPow(2, e)
 	}
-	queue <- 18446744073709551615 // 2 ** 64 - 1
+	queue <- MaxUint64 // 2 ** 64 - 1
 	close(queue)
 }
 
@@ -244,6 +244,11 @@ func report() {
 			comment = fmt.Sprintf("2 ** %v", p2)
 		}
 
+		if n == MaxUint64 {
+			comment = "2 ** 64 - 1"
+			// lines = append(lines, reportLine{n, "2 ** 64 - 1"})
+		}
+
 		lines = append(lines, reportLine{n, comment})
 		sp := SemiprimeNear(n)
 		if sp.N != n {
@@ -257,7 +262,6 @@ func report() {
 		}
 		lines = nil
 	}
-	displayLine(reportLine{MaxUint64, "2 ** 64 - 1"})
 }
 
 func displayLine(l reportLine) {
@@ -278,6 +282,6 @@ func displayLine(l reportLine) {
 }
 
 func main() {
-	// report()
-	FindPrimes()
+	report()
+	// FindPrimes()
 }
