@@ -15,6 +15,16 @@ import (
 const MaxUint64 = ^uint64(0) // using two's complement
 const MaxUint64Prime = 18446744073709551557
 
+// PrimeResult represents a number and its least prime factor
+type PrimeResult struct {
+	N   uint64
+	LPF uint64
+}
+
+func (p PrimeResult) IsPrime() bool {
+	return p.N >= 1 && p.N == p.LPF
+}
+
 // LPF returns the Least Prime Factor of `n“.
 // If `n` is prime, `LPF(n)` returns `n`.
 func LPF(n uint64) uint64 {
@@ -92,25 +102,27 @@ func PreviousPrime(n uint64) (uint64, error) {
 	return 0, errors.New("no primes < 2")
 }
 
-// SemiprimeNear finds a semiprime close to `target`.
-func SemiprimeNear(target uint64) (uint64, error) {
-	root := uint64(math.Round(math.Sqrt(float64(target))))
-	root = max(root, 2) // 2 is the smallest prime
-	if IsPrime(root) {
-		return root * root, nil
+// NextSemiprime finds the next semi prime after `n`.
+// If `n` is semi prime, it returns `n`.
+func NextSemiprime(n uint64) PrimeResult {
+	a := LPF(n)
+	b := n / a
+	if b < 2 {
+		b = 2
 	}
-	a, err := PreviousPrime(root)
-	if err != nil {
-		a, _ = NextPrime(root)
+	prod := a * b
+	if prod == n && IsPrime(a) {
+		return PrimeResult{prod, a}
 	}
-	b, err := NextPrime(target / a)
-	if err != nil {
-		return 0, err
+	for prod < n {
+		b, err := NextPrime(b + 1)
+		if err != nil {
+			panic(err)
+		}
+		prod = a * b
 	}
-	if (a * b) < (a * a) { // handle uint64 overflow
-		return a * a, nil
-	}
-	return a * b, nil
+	return PrimeResult{prod, a}
+
 }
 
 const shortTime = 0.0001
@@ -161,18 +173,18 @@ func FindPrimes() {
 	fmt.Printf("%20d  # next prime (%v)\n", next, msg)
 }
 
-func UintPow(n, m uint64) uint64 {
-	if m == 0 {
+func UintPow(n, exponent uint64) uint64 {
+	if exponent == 0 {
 		return 1
 	}
 	result := n
-	for i := uint64(2); i <= m; i++ {
+	for i := uint64(2); i <= exponent; i++ {
 		result *= n
 	}
 	return result
 }
 
-func genTargets(queue chan<- uint64) {
+func genTargetsLinear(queue chan<- uint64) {
 	const step = MaxUint64 / 16
 	var previous uint64 = 12
 	queue <- previous
@@ -183,6 +195,14 @@ func genTargets(queue chan<- uint64) {
 		queue <- n
 		previous = n
 	}
+	close(queue)
+}
+
+func genTargetsExp2(queue chan<- uint64) {
+	for e := uint64(30); e < 64; e++ {
+		queue <- UintPow(2, e)
+	}
+	queue <- 18446744073709551615 // 2 ** 64 - 1
 	close(queue)
 }
 
@@ -201,8 +221,9 @@ type reportLine = struct {
 }
 
 func report() {
+	go isPowerOf2(3)
 	queue := make(chan uint64)
-	go genTargets(queue)
+	go genTargetsExp2(queue)
 	var lines []reportLine
 	for n := range queue {
 		pp, _ := PreviousPrime(n)
@@ -216,9 +237,9 @@ func report() {
 		}
 
 		lines = append(lines, reportLine{n, comment})
-		sp, _ := SemiprimeNear(n)
-		if sp != n {
-			lines = append(lines, reportLine{sp, "semiprime"})
+		sp := NextSemiprime(n)
+		if sp.N != n {
+			lines = append(lines, reportLine{sp.N, "semiprime"})
 		}
 		slices.SortFunc(lines, func(a, b reportLine) int {
 			return cmp.Compare(a.n, b.n)
@@ -249,6 +270,6 @@ func displayLine(l reportLine) {
 }
 
 func main() {
-	report()
-	// FindPrimes()
+	// report()
+	FindPrimes()
 }

@@ -136,60 +136,82 @@ func TestPreviousPrime(t *testing.T) {
 	}
 }
 
-var semiprimesNear = []struct {
-	target    uint64
-	semiprime uint64
-	err       error
+// Semiprimes:
+// 4, 6, 9, 10, 14, 15, 21, 22, 25, 26, 33...
+
+var nextSemiprimes = []struct {
+	arg uint64
+	pr  PrimeResult
 }{
-	{1, 4, nil},
-	{2, 4, nil},
-	{3, 4, nil},
-	{5, 4, nil},
-	{6, 4, nil},
-	{7, 9, nil},
-	{8, 9, nil},
-	{10, 9, nil},
-	{12, 9, nil},
-	{13, 15, nil},
-	{14, 15, nil},
-	{15, 15, nil},
-	{16, 15, nil},
-	{17, 15, nil},
-	{18, 21, nil},
-	{20, 21, nil},
-	{21, 25, nil},
-	{30, 25, nil},
-	{31, 35, nil},
-	{100, 119, nil},
-	{121, 121, nil},
-	{130, 121, nil},
-	{900, 899, nil},
-	{1000, 1147, nil},
-	{10000000, 9997619, nil},
-	{100000000, 100099001, nil},
-	{10000000000000000000, 10000000011584185403, nil},
-	{18000000000000000000, 18000000066870082769, nil},
-	{18446744000000000000, 18446744065119616769, nil},
-	{18446744070000000000, 18446744030759878681, nil},
-	{MaxUint64Prime, 18446744030759878681, nil},
-	{MaxUint64, 18446744030759878681, nil},
+	{4, PrimeResult{4, 2}},
+	{5, PrimeResult{6, 2}},
 }
 
-func TestSemiprimeNear(t *testing.T) {
+func TestNextSemiprime(t *testing.T) {
 	t.Parallel()
-	for _, testCase := range semiprimesNear {
+	for _, testCase := range nextSemiprimes {
 		tc := testCase
-		t.Run(fmt.Sprintf("%v", tc), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v", testCase), func(t *testing.T) {
 			t.Parallel()
-			got, err := SemiprimeNear(tc.target)
-			if got != tc.semiprime {
-				t.Errorf("near %v expected: %v, got: %v",
-					tc.target, tc.semiprime, got)
-			}
-			if got == 0 && tc.err.Error() != err.Error() {
-				t.Errorf("%v expected error %q, got: %q",
-					tc.target, tc.err, err)
+			got := NextSemiprime(tc.arg)
+			if got != tc.pr {
+				t.Errorf("expected: %v, got: %v",
+					tc, got)
 			}
 		})
 	}
 }
+
+var semiprimesNear = []struct {
+	arg uint64
+	pr  PrimeResult
+}{
+	{1, PrimeResult{4, 2}},
+	{2, PrimeResult{4, 2}},
+	{3, PrimeResult{4, 2}},
+	{4, PrimeResult{4, 2}},
+	{5, PrimeResult{4, 2}},
+	{6, PrimeResult{6, 2}},
+	{7, PrimeResult{6, 2}},
+	{8, PrimeResult{9, 3}},
+	{9, PrimeResult{9, 3}},
+	{10, PrimeResult{10, 2}},
+	{11, PrimeResult{10, 2}},
+	{12, PrimeResult{10, 2}},
+	{13, PrimeResult{14, 2}},
+	{14, PrimeResult{14, 3}},
+	{15, PrimeResult{15, 3}},
+	// {16, PrimeResult{15, 3}},
+	// {17, PrimeResult{15, 3}},
+	// {18, PrimeResult{21, 3}},
+	// {20, PrimeResult{21, 3}},
+	// {21, PrimeResult{25, 5}},
+	// {30, PrimeResult{25, 5}},
+	// {31, PrimeResult{35, 5}},
+	// {39, PrimeResult{35, 5}},
+	// {40, PrimeResult{55, 5}},
+	// {40, PrimeResult{55, 5}},
+	// {10000000, 9997619},
+	// {100000000, 100099001},
+	// {10000000000000000000, 10000000011584185403},
+	// {18000000000000000000, 18000000066870082769},
+	// {18446744000000000000, 18446744065119616769},
+	// {18446744070000000000, 18446744030759878681},
+	// {MaxUint64Prime, 18446744030759878681},
+	//{MaxUint64, 18446744030759878681},
+}
+
+// func TestSemiprimeNearest(t *testing.T) {
+// 	t.Parallel()
+// 	for _, testCase := range semiprimesNear {
+// 		tc := testCase
+// 		t.Run(fmt.Sprintf("%v", testCase), func(t *testing.T) {
+// 			t.Parallel()
+// 			got := SemiprimeNearest(tc.arg)
+// 			if got != tc.pr {
+// 				t.Errorf("expected: %v, got: %v",
+// 					tc, got)
+// 			}
+// 		})
+// 	}
+// }
